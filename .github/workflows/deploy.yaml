@@ -1,0 +1,44 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # mainブランチへのpushをトリガーとする
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest # 最新のUbuntu環境で実行
+    permissions:
+      contents: read # リポジトリのコンテンツの読み取り権限
+      pages: write # GitHub Pagesへの書き込み権限
+      id-token: write # OIDCトークンの書き込み権限 (actions/deploy-pages で必要)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4 # リポジトリのコードをチェックアウト
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4 # Node.js環境をセットアップ
+        with:
+          node-version: '20' # 使用するNode.jsのバージョン (プロジェクトに合わせて変更可能)
+          cache: 'npm' # npmのキャッシュを有効にする (yarnの場合は 'yarn')
+
+      - name: Install dependencies
+        run: npm install # 依存関係をインストール (yarnの場合は yarn install)
+
+      - name: Build project
+        run: npm run build # プロジェクトをビルド (package.jsonのscriptsに合わせて変更)
+        # Viteのデフォルトのビルド出力ディレクトリは 'dist' です。
+        # もし変更している場合は、後続の actions/upload-pages-artifact の path も合わせて変更してください。
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5 # GitHub Pagesの設定を構成
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3 # ビルド成果物をアーティファクトとしてアップロード
+        with:
+          path: './dist' # Viteのビルド出力ディレクトリ (通常は 'dist')
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 # GitHub Pagesにデプロイ
